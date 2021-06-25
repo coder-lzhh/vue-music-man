@@ -1,52 +1,56 @@
 <template>
-    <div class="mini-player" v-show="!fullScreen" @click="showNormalPlayer">
-        <div class="cd-wrapper">
-            <div ref="cdRef" class="cd">
-                <img
-                    ref="cdImageRef"
-                    width="40"
-                    height="40"
-                    :src="currentSong.pic"
-                />
-            </div>
-        </div>
-        <div ref="sliderWrapperRef" class="slider-wrapper">
-            <div class="slider-group">
-                <div
-                    class="slider-page"
-                    v-for="song in playlist"
-                    :key="song.id"
-                >
-                    <h2 class="name">{{ song.name }}</h2>
-                    <p class="desc">{{ song.singer }}</p>
+    <transition name="mini">
+        <div class="mini-player" v-show="!fullScreen" @click="showNormalPlayer">
+            <div class="cd-wrapper">
+                <div ref="cdRef" class="cd">
+                    <img
+                        ref="cdImageRef"
+                        width="40"
+                        height="40"
+                        :src="currentSong.pic"
+                    />
                 </div>
             </div>
+            <div ref="sliderWrapperRef" class="slider-wrapper">
+                <div class="slider-group">
+                    <div
+                        class="slider-page"
+                        v-for="song in playlist"
+                        :key="song.id"
+                    >
+                        <h2 class="name">{{ song.name }}</h2>
+                        <p class="desc">{{ song.singer }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="control">
+                <ProgressCircle :radius="32" :progress="progress">
+                    <i
+                        class="icon-mini"
+                        :class="miniPlayIcon"
+                        @click.stop="togglePlay"
+                    ></i>
+                </ProgressCircle>
+            </div>
+            <div class="control" @click.stop="showPlaylist">
+                <i class="icon-playlist"></i>
+            </div>
+            <Playlist ref="playlistRef"></Playlist>
         </div>
-        <div class="control">
-            <ProgressCircle :radius="32" :progress="progress">
-                <i
-                    class="icon-mini"
-                    :class="miniPlayIcon"
-                    @click.stop="togglePlay"
-                ></i>
-            </ProgressCircle>
-        </div>
-        <div class="control">
-            <i class="icon-playlist"></i>
-        </div>
-    </div>
+    </transition>
 </template>
 
 <script>
 import { useStore } from 'vuex'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import ProgressCircle from './progress-circle.vue'
+import Playlist from './playlist.vue'
 import useMiniSlider from './use-mini-slider'
 
 export default {
     name: 'mini-player',
-    components: { ProgressCircle },
+    components: { ProgressCircle, Playlist },
     props: {
         progress: {
             type: Number,
@@ -59,6 +63,7 @@ export default {
         };
     },
     setup() {
+        const playlistRef = ref(null)
         const store = useStore()
 
         let { sliderWrapperRef } = useMiniSlider()
@@ -70,19 +75,26 @@ export default {
         const miniPlayIcon = computed(() => {
             return playing.value ? 'icon-pause-mini' : 'icon-play-mini'
         })
+
         function showNormalPlayer() {
             store.commit('setFullScreen', true)
         }
+        function showPlaylist() {
+            playlistRef.value.show()
+        }
 
         return {
+            playlistRef,
+            sliderWrapperRef,
             fullScreen,
             currentSong,
             playing,
             playlist,
             miniPlayIcon,
             showNormalPlayer,
-            sliderWrapperRef
+            showPlaylist
         }
+
     }
 }
 </script>
@@ -164,6 +176,16 @@ export default {
             color: $color-theme-d;
             font-size: 32px;
         }
+    }
+
+    &.mini-enter-active,
+    &.mini-leave-active {
+        transition: all 0.6s cubic-bezier(0.45, 0, 0.55, 1);
+    }
+    &.mini-enter-from,
+    &.mini-leave-to {
+        opacity: 0;
+        transform: translate3d(0, 100%, 0);
     }
 }
 </style>

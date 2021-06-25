@@ -18,6 +18,39 @@ export function randomPlay({ commit }, list) {
   commit('setPlayMode', PLAY_MODE.random)
   commit('setCurrentIndex', 0)
 }
+export function removeSong({ commit, state }, song) {
+  const sequenceList = state.sequenceList.slice()
+  const playlist = state.playlist.slice()
+  const sequenceIndex = findIndex(sequenceList, song)
+  const playIndex = findIndex(playlist, song)
+
+  sequenceList.splice(sequenceIndex, 1)
+  playlist.splice(playIndex, 1)
+
+  let currentIndex = state.currentIndex
+
+  if (playIndex < currentIndex || playIndex === playlist.length) {
+    currentIndex--
+  }
+
+  commit('setCurrentIndex', currentIndex)
+  commit('setPlaylist', playlist)
+  commit('setSequenceList', sequenceList)
+
+  if (!playlist.length) {
+    commit('setPlayingState', false)
+  }
+
+}
+export function clearSongList({ commit },) {
+  commit('setPlaylist', [])
+  commit('setSequenceList', [])
+  commit('setCurrentIndex', 0)
+  commit('setPlayingState', false)
+}
+function findIndex(list, song) {
+  return list.findIndex(item => item.id === song.id)
+}
 export function changeMode({ commit, state, getters }, mode) {
   const currentId = getters.currentSong.id
 
@@ -30,5 +63,5 @@ export function changeMode({ commit, state, getters }, mode) {
   commit('setCurrentIndex', index)
   commit('setPlayMode', mode)
 }
- 
+
 
